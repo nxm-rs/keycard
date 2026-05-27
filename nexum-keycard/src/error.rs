@@ -129,6 +129,16 @@ pub enum Error {
     #[error("User interaction error: {0}")]
     UserInteractionError(String),
 
+    /// Input retries exhausted while prompting for a value
+    #[error("input retries exhausted: {0}")]
+    InputRetriesExhausted(&'static str),
+
+    /// A callback was invoked that should have been unreachable for
+    /// this code path (e.g. an input/confirmation callback fired
+    /// after `with_known_credentials`).
+    #[error("callback invoked unexpectedly: {0}")]
+    CallbackUnreachable(String),
+
     //
     // Command-specific errors
     //

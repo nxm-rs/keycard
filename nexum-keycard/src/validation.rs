@@ -148,10 +148,14 @@ pub fn validate_and_decode_hex(hex_str: &str) -> ValidationResult<[u8; 32]> {
 /// * `attempts` - Maximum number of attempts (defaults to 3)
 ///
 /// # Returns
-/// * `String` - The validated PIN
-pub fn get_valid_pin<F>(input_fn: &F, attempts: usize) -> String
+/// * `Ok(String)` — the validated PIN.
+/// * `Err(Error::InputRetriesExhausted)` — every attempt failed
+///   validation.
+/// * any error returned by `input_fn` is propagated immediately
+///   (no retry — a broken callback won't fix itself).
+pub fn get_valid_pin<F>(input_fn: &F, attempts: usize) -> crate::Result<String>
 where
-    F: Fn(&str) -> String,
+    F: Fn(&str) -> crate::Result<String>,
 {
     let max_attempts = if attempts > 0 { attempts } else { 3 };
 
@@ -166,17 +170,16 @@ where
             )
         };
 
-        let pin = input_fn(&prompt);
+        let pin = input_fn(&prompt)?;
 
         match validate_pin(&pin) {
-            Ok(valid_pin) => return valid_pin,
+            Ok(valid_pin) => return Ok(valid_pin),
             Err(e) => warn!("PIN validation failed: {}", e),
         }
     }
 
-    // If we get here, the user failed all attempts, return a default value
-    warn!("Maximum PIN entry attempts reached, using default value");
-    panic!("Maximum attempts reached for requesting valid input");
+    warn!("Maximum PIN entry attempts reached");
+    Err(crate::Error::InputRetriesExhausted("PIN"))
 }
 
 /// Attempts to get a valid pairing key from the user using the provided input function
@@ -189,10 +192,12 @@ where
 /// * `attempts` - Maximum number of attempts (defaults to 3)
 ///
 /// # Returns
-/// * `[u8; 32]` - The validated and decoded key
-pub fn get_valid_pairing_key<F>(input_fn: &F, attempts: usize) -> [u8; 32]
+/// * `Ok([u8; 32])` — the validated and decoded key.
+/// * `Err(Error::InputRetriesExhausted)` — every attempt failed
+///   validation.
+pub fn get_valid_pairing_key<F>(input_fn: &F, attempts: usize) -> crate::Result<[u8; 32]>
 where
-    F: Fn(&str) -> String,
+    F: Fn(&str) -> crate::Result<String>,
 {
     let max_attempts = if attempts > 0 { attempts } else { 3 };
 
@@ -207,17 +212,16 @@ where
             )
         };
 
-        let key_hex = input_fn(&prompt);
+        let key_hex = input_fn(&prompt)?;
 
         match validate_and_decode_hex(&key_hex) {
-            Ok(key) => return key,
+            Ok(key) => return Ok(key),
             Err(e) => warn!("Pairing key validation failed: {}", e),
         }
     }
 
-    // If we get here, the user failed all attempts, return a default value
-    warn!("Maximum pairing key entry attempts reached, using default value");
-    panic!("Maximum attempts reached for requesting valid input")
+    warn!("Maximum pairing key entry attempts reached");
+    Err(crate::Error::InputRetriesExhausted("pairing key"))
 }
 
 /// Attempts to get a valid pairing index from the user using the provided input function
@@ -230,10 +234,12 @@ where
 /// * `attempts` - Maximum number of attempts (defaults to 3)
 ///
 /// # Returns
-/// * `u8` - The validated pairing index
-pub fn get_valid_pairing_index<F>(input_fn: &F, attempts: usize) -> u8
+/// * `Ok(u8)` — the validated pairing index.
+/// * `Err(Error::InputRetriesExhausted)` — every attempt failed
+///   validation.
+pub fn get_valid_pairing_index<F>(input_fn: &F, attempts: usize) -> crate::Result<u8>
 where
-    F: Fn(&str) -> String,
+    F: Fn(&str) -> crate::Result<String>,
 {
     let max_attempts = if attempts > 0 { attempts } else { 3 };
 
@@ -248,19 +254,18 @@ where
             )
         };
 
-        let index_str = input_fn(&prompt);
+        let index_str = input_fn(&prompt)?;
 
         // Try to parse as a number
         match index_str.trim().parse::<u8>() {
             Ok(index) => match validate_pairing_index(index) {
-                Ok(valid_index) => return valid_index,
+                Ok(valid_index) => return Ok(valid_index),
                 Err(e) => warn!("Pairing index validation failed: {}", e),
             },
             Err(_) => warn!("Failed to parse pairing index as a number"),
         }
     }
 
-    // If we get here, the user failed all attempts, return a default value
-    warn!("Maximum pairing index entry attempts reached, using default value");
-    panic!("Maximum attempts reached for requesting valid input");
+    warn!("Maximum pairing index entry attempts reached");
+    Err(crate::Error::InputRetriesExhausted("pairing index"))
 }

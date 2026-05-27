@@ -177,14 +177,14 @@ pub fn load_seed_command(
     };
 
     // Get mnemonic phrase from user using the utility function
-    let mnemonic_phrase = utils::session::default_input_request("Enter your seed phrase");
+    let mnemonic_phrase = utils::session::default_input_request("Enter your seed phrase")?;
 
     // Get password if requested
     let password = if password {
         // User specified the --password flag, so prompt for it
         Some(utils::session::default_input_request(
             "Enter password for seed phrase",
-        ))
+        )?)
     } else {
         None
     };

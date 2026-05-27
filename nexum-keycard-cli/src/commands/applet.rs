@@ -337,7 +337,7 @@ fn delete_command(transport: PcscTransport, args: &DeleteArgs) -> Result<(), Box
     let confirmed = args.force
         || crate::utils::session::default_confirmation(
             "Are you sure you want to delete the Keycard package? This operation cannot be undone.",
-        );
+        )?;
 
     if confirmed {
         // Delete the Keycard package

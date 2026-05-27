@@ -2,30 +2,38 @@
 
 use nexum_apdu_core::prelude::*;
 use nexum_apdu_transport_pcsc::PcscTransport;
-use nexum_keycard::{Keycard, KeycardSecureChannel, PairingInfo};
+use nexum_keycard::{Error as KeycardError, Keycard, KeycardSecureChannel, PairingInfo};
 use tracing::debug;
 
 type KeycardExecutor = CardExecutor<KeycardSecureChannel<PcscTransport>>;
 
 /// Default input request handler (asks for PIN/PUK/etc)
-pub fn default_input_request(prompt: &str) -> String {
+pub fn default_input_request(prompt: &str) -> Result<String, KeycardError> {
     use std::io::{self, Write};
     print!("{prompt}: ");
-    io::stdout().flush().unwrap();
+    io::stdout()
+        .flush()
+        .map_err(|e| KeycardError::UserInteractionError(format!("stdout flush: {e}")))?;
     let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-    input.trim().to_string()
+    io::stdin()
+        .read_line(&mut input)
+        .map_err(|e| KeycardError::UserInteractionError(format!("stdin read: {e}")))?;
+    Ok(input.trim().to_string())
 }
 
 /// Default confirmation handler
-pub fn default_confirmation(message: &str) -> bool {
+pub fn default_confirmation(message: &str) -> Result<bool, KeycardError> {
     use std::io::{self, Write};
     print!("{message} (y/n): ");
-    io::stdout().flush().unwrap();
+    io::stdout()
+        .flush()
+        .map_err(|e| KeycardError::UserInteractionError(format!("stdout flush: {e}")))?;
     let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
+    io::stdin()
+        .read_line(&mut input)
+        .map_err(|e| KeycardError::UserInteractionError(format!("stdin read: {e}")))?;
     let input = input.trim().to_lowercase();
-    input == "y" || input == "yes"
+    Ok(input == "y" || input == "yes")
 }
 
 /// Initialize a keycard with pairing information

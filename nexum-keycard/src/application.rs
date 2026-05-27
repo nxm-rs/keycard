@@ -21,9 +21,9 @@ use std::sync::Arc;
 use tracing::{debug, warn};
 
 /// Type for function that provides an input string (ie. PIN)
-pub type InputRequestFn = Box<dyn Fn(&str) -> String + Send + Sync>;
+pub type InputRequestFn = Box<dyn Fn(&str) -> Result<String> + Send + Sync>;
 /// Type for function that confirms operations
-pub type ConfirmationFn = Box<dyn Fn(&str) -> bool + Send + Sync>;
+pub type ConfirmationFn = Box<dyn Fn(&str) -> Result<bool> + Send + Sync>;
 
 /// Keycard application implementation
 pub struct Keycard<E: Executor> {
@@ -120,10 +120,10 @@ impl<E: Executor> Keycard<E> {
                 // Create a new callback for pairing with validation
                 let callback = Box::new(move || {
                     // Get a valid pairing key (32 bytes) using the validation module
-                    let key = get_valid_pairing_key(&|prompt| callback_ref(prompt), 3);
+                    let key = get_valid_pairing_key(&|prompt| callback_ref(prompt), 3)?;
 
                     // Get a valid pairing index (0-99) using the validation module
-                    let index = get_valid_pairing_index(&|prompt| callback_ref(prompt), 3);
+                    let index = get_valid_pairing_index(&|prompt| callback_ref(prompt), 3)?;
 
                     debug!(
                         "Using pairing key and index: {} (index: {})",
@@ -131,7 +131,7 @@ impl<E: Executor> Keycard<E> {
                         index
                     );
 
-                    PairingInfo { key, index }
+                    Ok(PairingInfo { key, index })
                 });
 
                 PairingProvider::Callback(callback)
@@ -241,16 +241,20 @@ impl<E: Executor> Keycard<E> {
         let _ = crate::validation::validate_pin(&pin)
             .map_err(|e| Error::Message(format!("Invalid PIN: {e}")))?;
 
-        // Create no-op callbacks that will panic if called
-        // These should never be called since we have all credentials up front
+        // Sentinel callbacks: invoked only if the state machine
+        // unexpectedly asks for user input despite known credentials
+        // having been provided. Return a recoverable error instead
+        // of panicking.
         let input_callback: InputRequestFn = Box::new(|prompt| {
-            panic!("Input callback called when using known credentials: {prompt}");
+            Err(Error::CallbackUnreachable(format!(
+                "input requested with known credentials: {prompt}"
+            )))
         });
 
         let confirm_callback: ConfirmationFn = Box::new(|prompt| {
-            panic!("Confirmation callback called when using known credentials: {prompt}");
-            #[allow(unreachable_code)]
-            false
+            Err(Error::CallbackUnreachable(format!(
+                "confirmation requested with known credentials: {prompt}"
+            )))
         });
 
         // Use from_interactive with known credentials
@@ -325,10 +329,11 @@ impl<E: Executor> Keycard<E> {
 
     /// Request input using the input request callback
     ///
-    /// Returns an error if no callback is set
+    /// Returns an error if no callback is set, or if the callback
+    /// itself returns an error.
     fn request_input(&self, prompt: &str) -> Result<String> {
         match &self.input_request_callback {
-            Some(callback) => Ok(callback(prompt)),
+            Some(callback) => callback(prompt),
             None => Err(Error::UserInteractionError(
                 "No input request callback set for operation requiring user input".to_string(),
             )),
@@ -337,10 +342,11 @@ impl<E: Executor> Keycard<E> {
 
     /// Confirm a critical operation using the confirmation callback
     ///
-    /// Returns false if no callback is set, preventing destructive operations
+    /// Returns an error if no callback is set, or if the callback
+    /// itself returns an error.
     fn confirm_operation(&self, operation_description: &str) -> Result<bool> {
         match &self.confirmation_callback {
-            Some(callback) => Ok(callback(operation_description)),
+            Some(callback) => callback(operation_description),
             None => Err(Error::UserInteractionError(
                 "No confirmation callback set for operation requiring confirmation".to_string(),
             )),
