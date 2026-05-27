@@ -163,10 +163,22 @@ impl<T: CardTransport> KeycardSecureChannel<T> {
 
                         debug!("Pairing successful with index {}", pairing_index);
 
-                        Ok(PairingInfo {
+                        let pairing_info = PairingInfo {
                             key: key.into(),
                             index: pairing_index,
-                        })
+                        };
+
+                        // Cache the freshly-acquired pairing material
+                        // so a subsequent `open_secure_channel()` doesn't
+                        // fall back to the (now-stale) pairing callback
+                        // installed at construction time. Without this,
+                        // programmatic callers hit the legacy
+                        // "enter 64-hex pairing key" path and exhaust
+                        // retries.
+                        self.pairing_provider =
+                            Some(PairingProvider::Info(pairing_info.clone()));
+
+                        Ok(pairing_info)
                     }
                     _ => Err(crate::Error::invalid_data("Invalid response")),
                 }
