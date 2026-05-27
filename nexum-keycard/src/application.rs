@@ -353,6 +353,27 @@ where
     E: Executor + SecureChannelExecutor,
     E::Transport: crate::secure_channel::KeycardSecureChannelExt,
 {
+    /// Re-SELECT the Keycard applet and propagate the freshly-read
+    /// card public key into the underlying secure channel.
+    ///
+    /// `initialize()` causes the applet to regenerate its
+    /// secure-channel keypair. A plain `select_keycard()` refreshes
+    /// the outer `Keycard`'s cached `ApplicationInfo.public_key` but
+    /// not `KeycardSecureChannel::card_public_key`, so subsequent
+    /// `pair()` / `open_secure_channel()` calls derive the ECDH
+    /// shared secret against the stale pre-INIT key and mutual
+    /// authentication fails. Call this helper after `initialize()`
+    /// instead.
+    pub fn refresh_after_init(&mut self) -> Result<ApplicationInfo> {
+        use crate::secure_channel::KeycardSecureChannelExt;
+        let app_info = self.select_keycard()?;
+        if let Some(pk) = &app_info.public_key {
+            self.executor.transport_mut().rotate_card_key(*pk);
+        }
+        self.card_public_key = app_info.public_key;
+        Ok(app_info)
+    }
+
     /// Check if the secure channel is open
     pub fn is_secure_channel_open(&self) -> bool {
         self.executor.has_secure_channel()

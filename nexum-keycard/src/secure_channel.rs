@@ -19,11 +19,20 @@ use crate::{Challenge, MutuallyAuthenticateOk, PairCommand, PairOk};
 pub trait KeycardSecureChannelExt: CardTransport {
     /// Pair with the card using a password
     fn pair(&mut self, password: &str) -> crate::Result<PairingInfo>;
+
+    /// Adopt a freshly-read card public key, dropping any session
+    /// derived from the previous one. Use after INIT (which makes
+    /// the applet regenerate its secure-channel keypair).
+    fn rotate_card_key(&mut self, new_key: k256::PublicKey);
 }
 
 impl<T: CardTransport> KeycardSecureChannelExt for KeycardSecureChannel<T> {
     fn pair(&mut self, password: &str) -> crate::Result<PairingInfo> {
         self.pair(password)
+    }
+
+    fn rotate_card_key(&mut self, new_key: k256::PublicKey) {
+        self.rotate_card_key(new_key);
     }
 }
 
@@ -114,6 +123,18 @@ impl<T: CardTransport> KeycardSecureChannel<T> {
         self.card_public_key = Some(card_public_key);
         self.pairing_provider = Some(pairing_provider);
         self.pin_provider = Some(pin_provider);
+    }
+
+    /// Adopt a freshly-read card public key, dropping any session
+    /// derived from the previous one. Use after `INIT` (which makes
+    /// the Keycard applet regenerate its secure-channel keypair).
+    /// Without rotating, `Session::new` derives the ECDH shared
+    /// secret against the stale pre-INIT key and mutual
+    /// authentication fails.
+    pub fn rotate_card_key(&mut self, new_key: k256::PublicKey) {
+        self.card_public_key = Some(new_key);
+        self.session = None;
+        self.established = false;
     }
 
     /// Pair the card and initialize the secure channel
