@@ -4,9 +4,7 @@ use std::path::PathBuf;
 
 use cipher::Key;
 use nexum_apdu_core::prelude::*;
-use nexum_apdu_globalplatform::{
-    DefaultGlobalPlatform, GPSecureChannel, load::LoadCommandStream, session::Keys,
-};
+use nexum_apdu_globalplatform::{GPSecureChannel, GlobalPlatform, load::LoadCommandStream, session::Keys};
 use nexum_apdu_transport_pcsc::PcscTransport;
 
 // Constants for keycard package identification
@@ -122,9 +120,11 @@ fn connect_globalplatform(
 
     // Create keys based on option
     let gp = if use_default_key {
-        // Use default keys (via DefaultGlobalPlatform)
-        DefaultGlobalPlatform::connect(&reader_name)
-            .map_err(|e| format!("Failed to connect to the reader: {e}"))?
+        // Compose the transport-specific GlobalPlatform inline; the
+        // lib is transport-agnostic so we do the wiring here.
+        let secure_channel = GPSecureChannel::new(transport, Keys::default());
+        let executor = CardExecutor::new(secure_channel);
+        GlobalPlatform::new(executor)
     } else {
         // Use Keycard development keys
         // Create a key type that the SCP02 protocol can use

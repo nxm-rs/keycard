@@ -6,7 +6,8 @@ use alloy_network::TransactionBuilder;
 use alloy_primitives::{U256, address};
 use alloy_provider::{Provider, ProviderBuilder};
 use alloy_rpc_types_eth::TransactionRequest;
-use nexum_keycard::{Keycard, PairingInfo, PcscDeviceManager};
+use nexum_apdu_transport_pcsc::PcscDeviceManager;
+use nexum_keycard::{Keycard, PairingInfo};
 use nexum_keycard_signer::{DerivationPath, KeycardSigner};
 
 use eyre::Result;

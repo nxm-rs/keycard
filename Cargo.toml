@@ -37,10 +37,10 @@ nexum-keycard-signer = { version = "0.2", path = "nexum-keycard-signer" }
 
 # nexum-apdu — pinned to a commit on nxm-rs/nexum-apdu until that
 # crate set is published to crates.io.
-nexum-apdu-core = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "e5204d67f294b2dc565c107bc917d372e1df856f" }
-nexum-apdu-globalplatform = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "e5204d67f294b2dc565c107bc917d372e1df856f" }
-nexum-apdu-macros = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "e5204d67f294b2dc565c107bc917d372e1df856f" }
-nexum-apdu-transport-pcsc = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "e5204d67f294b2dc565c107bc917d372e1df856f" }
+nexum-apdu-core = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "008bc499a9e5b090e465a2ad421bfb1b73b76605" }
+nexum-apdu-globalplatform = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "008bc499a9e5b090e465a2ad421bfb1b73b76605" }
+nexum-apdu-macros = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "008bc499a9e5b090e465a2ad421bfb1b73b76605" }
+nexum-apdu-transport-pcsc = { git = "https://github.com/nxm-rs/nexum-apdu", rev = "008bc499a9e5b090e465a2ad421bfb1b73b76605" }
 
 # alloy 2.x — bumped from 1.x for binary-size dedup with downstream
 # consumers (helios + mobile wallets) that have already moved to 2.

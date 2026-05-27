@@ -2537,7 +2537,7 @@ dependencies = [
 [[package]]
 name = "nexum-apdu-core"
 version = "0.2.0"
-source = "git+https://github.com/nxm-rs/nexum-apdu?rev=e5204d67f294b2dc565c107bc917d372e1df856f#e5204d67f294b2dc565c107bc917d372e1df856f"
+source = "git+https://github.com/nxm-rs/nexum-apdu?rev=008bc499a9e5b090e465a2ad421bfb1b73b76605#008bc499a9e5b090e465a2ad421bfb1b73b76605"
 dependencies = [
  "bytes",
  "hex",
@@ -2548,7 +2548,7 @@ dependencies = [
 [[package]]
 name = "nexum-apdu-globalplatform"
 version = "0.2.0"
-source = "git+https://github.com/nxm-rs/nexum-apdu?rev=e5204d67f294b2dc565c107bc917d372e1df856f#e5204d67f294b2dc565c107bc917d372e1df856f"
+source = "git+https://github.com/nxm-rs/nexum-apdu?rev=008bc499a9e5b090e465a2ad421bfb1b73b76605#008bc499a9e5b090e465a2ad421bfb1b73b76605"
 dependencies = [
  "bytes",
  "cbc",
@@ -2561,11 +2561,9 @@ dependencies = [
  "iso7816-tlv",
  "nexum-apdu-core",
  "nexum-apdu-macros",
- "nexum-apdu-transport-pcsc",
  "rand 0.10.1",
  "thiserror 2.0.18",
  "tracing",
- "tracing-subscriber",
  "zeroize",
  "zip",
 ]
@@ -2573,7 +2571,7 @@ dependencies = [
 [[package]]
 name = "nexum-apdu-macros"
 version = "0.2.0"
-source = "git+https://github.com/nxm-rs/nexum-apdu?rev=e5204d67f294b2dc565c107bc917d372e1df856f#e5204d67f294b2dc565c107bc917d372e1df856f"
+source = "git+https://github.com/nxm-rs/nexum-apdu?rev=008bc499a9e5b090e465a2ad421bfb1b73b76605#008bc499a9e5b090e465a2ad421bfb1b73b76605"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -2584,7 +2582,7 @@ dependencies = [
 [[package]]
 name = "nexum-apdu-transport-pcsc"
 version = "0.2.0"
-source = "git+https://github.com/nxm-rs/nexum-apdu?rev=e5204d67f294b2dc565c107bc917d372e1df856f#e5204d67f294b2dc565c107bc917d372e1df856f"
+source = "git+https://github.com/nxm-rs/nexum-apdu?rev=008bc499a9e5b090e465a2ad421bfb1b73b76605#008bc499a9e5b090e465a2ad421bfb1b73b76605"
 dependencies = [
  "crossbeam-channel",
  "nexum-apdu-core",
@@ -2616,7 +2614,6 @@ dependencies = [
  "nexum-apdu-core",
  "nexum-apdu-globalplatform",
  "nexum-apdu-macros",
- "nexum-apdu-transport-pcsc",
  "pbkdf2",
  "rand 0.10.1",
  "rand 0.8.6",
@@ -2668,19 +2665,11 @@ dependencies = [
  "eyre",
  "k256",
  "nexum-apdu-core",
+ "nexum-apdu-transport-pcsc",
  "nexum-keycard",
  "parking_lot",
  "rand 0.10.1",
  "tokio",
-]
-
-[[package]]
-name = "nu-ansi-term"
-version = "0.50.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
-dependencies = [
- "windows-sys",
 ]
 
 [[package]]
@@ -4070,7 +4059,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cb7f578e5945fb242538965c2d0b04418d38ec25c79d160cd279bf0731c8d319"
 dependencies = [
  "matchers",
- "nu-ansi-term",
  "once_cell",
  "regex-automata",
  "serde",

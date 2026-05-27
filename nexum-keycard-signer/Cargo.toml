@@ -41,4 +41,7 @@ alloy-network = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-provider = { version = "2", default-features = false, features = ["reqwest"] }
 alloy-rpc-types-eth = { version = "2", default-features = false }
+# Examples wire up the PC/SC transport directly; the lib itself is
+# transport-agnostic.
+nexum-apdu-transport-pcsc.workspace = true
 tokio = { workspace = true, features = ["rt-multi-thread"] }
