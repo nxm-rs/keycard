@@ -175,8 +175,7 @@ impl<T: CardTransport> KeycardSecureChannel<T> {
                         // programmatic callers hit the legacy
                         // "enter 64-hex pairing key" path and exhaust
                         // retries.
-                        self.pairing_provider =
-                            Some(PairingProvider::Info(pairing_info.clone()));
+                        self.pairing_provider = Some(PairingProvider::Info(pairing_info.clone()));
 
                         Ok(pairing_info)
                     }
