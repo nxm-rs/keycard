@@ -1,6 +1,6 @@
 pub mod derive_key;
+use bip32::DerivationPath;
 use bytes::{Bytes, BytesMut};
-use coins_bip32::path::DerivationPath;
 pub use derive_key::*;
 pub mod export_key;
 pub use export_key::*;
@@ -60,7 +60,7 @@ pub enum PersistentRecord {
 pub(crate) fn derivation_path_to_bytes(path: &DerivationPath) -> Bytes {
     path.iter()
         .fold(BytesMut::new(), |mut bytes, component| {
-            bytes.extend_from_slice(&component.to_be_bytes());
+            bytes.extend_from_slice(&u32::from(component).to_be_bytes());
             bytes
         })
         .freeze()

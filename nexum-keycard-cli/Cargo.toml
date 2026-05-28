@@ -36,7 +36,7 @@ cipher.workspace = true
 tracing.workspace = true
 iso7816-tlv.workspace = true
 tracing-subscriber = { workspace = true, features = ["fmt"] }
-coins-bip32.workspace = true
-coins-bip39 = { workspace = true, features = ["all-langs"] }
+bip32.workspace = true
+bip39 = { workspace = true, features = ["all-languages"] }
 tokio = { workspace = true, features = ["full"] }
 rand = { workspace = true }

@@ -1,4 +1,4 @@
-use coins_bip39::Mnemonic;
+use bip39::{Language, Mnemonic};
 use nexum_apdu_globalplatform::constants::status::*;
 use nexum_apdu_macros::apdu_pair;
 
@@ -47,22 +47,24 @@ apdu_pair! {
 }
 
 impl GenerateMnemonicOk {
-    pub fn to_phrase<L>(&self) -> Result<Mnemonic<L>, Error>
-    where
-        L: coins_bip39::Wordlist,
-    {
+    /// Decode the card's u16 word-index array into a `Mnemonic` using
+    /// the given language's wordlist.
+    pub fn to_phrase(&self, language: Language) -> Result<Mnemonic, Error> {
         match self {
             Self::Success { words: words_u16 } => {
-                let mut words = Vec::new();
+                let wordlist = language.word_list();
+                let mut words = Vec::with_capacity(words_u16.len() / 2);
 
                 for chunk in words_u16.chunks_exact(2) {
-                    if chunk.len() == 2 {
-                        let index = u16::from_be_bytes([chunk[0], chunk[1]]) as usize;
-                        words.push(L::get(index)?);
-                    }
+                    let index = u16::from_be_bytes([chunk[0], chunk[1]]) as usize;
+                    words.push(*wordlist.get(index).ok_or_else(|| {
+                        Error::InvalidDerivationArguments(format!(
+                            "wordlist index {index} out of range"
+                        ))
+                    })?);
                 }
 
-                Mnemonic::new_from_phrase(words.join(" ").as_str()).map_err(Into::into)
+                Mnemonic::parse_in_normalized(language, &words.join(" ")).map_err(Into::into)
             }
         }
     }

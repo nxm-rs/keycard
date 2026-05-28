@@ -5,8 +5,8 @@ pub mod reader;
 pub mod session;
 
 use alloy_primitives::hex;
+use bip32::DerivationPath;
 use clap::Args;
-use coins_bip32::path::DerivationPath;
 use nexum_keycard::PairingInfo;
 use rand::RngExt;
 use rand::distr::Alphanumeric;

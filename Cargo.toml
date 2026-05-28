@@ -60,16 +60,13 @@ sha2 = "0.10"
 zeroize = { version = "1", features = ["derive"] }
 block-padding = "0.3"
 
-# RNG — `rand` is the modern workspace pin (0.10); `rand_v8` aliases
-# rand 0.8 because k256 0.13's `SecretKey::random` takes a
-# `rand_core 0.6` RNG that only rand 0.8 implements. Both are
-# expected to remain until k256 0.14 stabilises.
+# RNG
 rand = "0.10"
 rand_v8 = { version = "0.8", package = "rand" }
 
 # bip32 / bip39 / wordlists
-coins-bip32 = { version = "0.12", default-features = false }
-coins-bip39 = { version = "0.12", default-features = false }
+bip32 = { version = "0.5", default-features = false, features = ["std", "secp256k1"] }
+bip39 = { version = "2", default-features = false, features = ["std"] }
 
 # bytes + encoding
 bytes = { version = "1", default-features = false }
