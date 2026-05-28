@@ -6,7 +6,7 @@ pub mod session;
 
 use alloy_primitives::hex;
 use clap::Args;
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 use nexum_keycard::PairingInfo;
 use rand::RngExt;
 use rand::distr::Alphanumeric;

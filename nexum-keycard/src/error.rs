@@ -4,7 +4,6 @@
 //! It centralizes all error variants to simplify error handling and
 //! facilitate better error propagation throughout the codebase.
 
-use coins_bip39::{MnemonicError, WordlistError};
 use iso7816_tlv::TlvError;
 use thiserror::Error;
 
@@ -35,17 +34,13 @@ pub enum Error {
     #[error("TLV error: {0}")]
     Tlv(TlvError),
 
-    /// BIP39 mnemonic error
+    /// BIP39 mnemonic/wordlist error
     #[error(transparent)]
-    Mnemonic(#[from] MnemonicError),
-
-    /// BIP39 wordlist error
-    #[error(transparent)]
-    Wordlist(#[from] WordlistError),
+    Bip39(#[from] bip39::Error),
 
     /// BIP32 derivation error
     #[error(transparent)]
-    Bip32(#[from] coins_bip32::Bip32Error),
+    Bip32(#[from] bip32::Error),
 
     //
     // Cryptographic errors
@@ -107,7 +102,7 @@ pub enum Error {
 
     /// BIP32 path parsing error
     #[error("BIP32 path parsing error: {0}")]
-    Bip32PathParsingError(coins_bip32::Bip32Error),
+    Bip32PathParsingError(bip32::Error),
 
     /// Invalid derivation path length
     #[error("Invalid derivation path length")]

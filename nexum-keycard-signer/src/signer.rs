@@ -5,7 +5,7 @@ use alloy_network::{AnyNetwork, EthereumWallet, IntoWallet};
 use alloy_primitives::{Address, B256, ChainId, Signature};
 use alloy_signer::{Result, Signer, sign_transaction_with_chain_id};
 use async_trait::async_trait;
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 use nexum_apdu_core::prelude::*;
 use nexum_keycard::{ExportOption, Keycard, KeycardSecureChannel};
 use tokio::sync::Mutex;
@@ -28,7 +28,7 @@ where
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("KeycardSigner")
             .field("chain_id", &self.chain_id)
-            .field("derivation_path", &self.derivation_path.derivation_string())
+            .field("derivation_path", &self.derivation_path.to_string())
             .field("address", &self.address)
             .finish_non_exhaustive()
     }

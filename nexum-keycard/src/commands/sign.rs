@@ -5,7 +5,7 @@ use nexum_apdu_macros::apdu_pair;
 use super::{CLA_GP, DERIVE_FROM_MASTER, DERIVE_FROM_PINLESS, derivation_path_to_bytes};
 use crate::types::Signature;
 
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 
 apdu_pair! {
     /// SIGN command for Keycard

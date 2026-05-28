@@ -16,7 +16,7 @@ use crate::validation::{get_valid_pairing_index, get_valid_pairing_key, get_vali
 use crate::{ApplicationInfo, ApplicationStatus, Error, PairingInfo, Result};
 use crate::{Secrets, commands::*};
 use alloy_primitives::hex;
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 use std::sync::Arc;
 use tracing::{debug, warn};
 
@@ -444,7 +444,7 @@ where
     }
 
     /// Get the current key path from the Keycard
-    pub fn get_key_path(&mut self) -> Result<coins_bip32::path::DerivationPath> {
+    pub fn get_key_path(&mut self) -> Result<bip32::DerivationPath> {
         // Create the get status command for key path
         let cmd = GetStatusCommand::key_path();
 
@@ -514,10 +514,7 @@ where
     ) -> Result<alloy_primitives::Signature> {
         // Confirm the operation if a confirmation function is provided
         if confirm
-            && !self.confirm_operation(&format!(
-                "Sign data with key from path {}?",
-                path.derivation_string()
-            ))?
+            && !self.confirm_operation(&format!("Sign data with key from path {path}?"))?
         {
             return Err(Error::UserCancelled);
         }
@@ -656,7 +653,7 @@ where
     /// Set the pinless path for the card
     pub fn set_pinless_path(
         &mut self,
-        path: Option<&coins_bip32::path::DerivationPath>,
+        path: Option<&bip32::DerivationPath>,
         confirm: bool,
     ) -> Result<()> {
         // Create description for confirmation
@@ -675,7 +672,7 @@ where
             Some(p) => SetPinlessPathCommand::with_path(p),
             None => {
                 // Manually handle clearing the path by sending an empty path
-                let empty_path = coins_bip32::path::DerivationPath::default();
+                let empty_path = bip32::DerivationPath::default();
                 SetPinlessPathCommand::with_path(&empty_path)
             }
         };
@@ -686,11 +683,13 @@ where
         Ok(())
     }
 
-    /// Generate a mnemonic phrase of the specified length
+    /// Generate a mnemonic phrase of the specified length in the
+    /// given language.
     pub fn generate_mnemonic(
         &mut self,
         words: u8,
-    ) -> Result<coins_bip39::Mnemonic<coins_bip39::English>> {
+        language: bip39::Language,
+    ) -> Result<bip39::Mnemonic> {
         // Check if the card supports key management
         self.capabilities
             .require_capability(Capability::KeyManagement)?;
@@ -702,7 +701,7 @@ where
         let response = self.executor.execute_secure(&cmd)?;
 
         // Convert to mnemonic phrase
-        response.to_phrase()
+        response.to_phrase(language)
     }
 
     /// Identify the card by signing a challenge

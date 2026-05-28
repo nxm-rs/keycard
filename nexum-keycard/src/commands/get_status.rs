@@ -1,7 +1,7 @@
 use nexum_apdu_globalplatform::constants::status::*;
 use nexum_apdu_macros::apdu_pair;
 
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 
 use crate::ApplicationStatus;
 
@@ -56,8 +56,12 @@ apdu_pair! {
                     SW_NO_ERROR => {
                         match response.payload() {
                             Some(data) if data.len().is_multiple_of(4) => {
-                                let u32_iter = data.chunks(4).map(|chunk| u32::from_be_bytes(chunk.try_into().unwrap()));
-                                let path = DerivationPath::from_iter(u32_iter);
+                                let mut path = DerivationPath::default();
+                                path.extend(data.chunks(4).map(|chunk| {
+                                    bip32::ChildNumber::from(u32::from_be_bytes(
+                                        chunk.try_into().unwrap(),
+                                    ))
+                                }));
                                 Ok(GetStatusOk::KeyPathStatus {
                                     path,
                                 })

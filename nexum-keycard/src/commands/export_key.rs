@@ -4,7 +4,7 @@ use nexum_apdu_macros::apdu_pair;
 use crate::Keypair;
 
 use super::{CLA_GP, DERIVE_FROM_MASTER, derivation_path_to_bytes};
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "cli", derive(clap::ValueEnum))]

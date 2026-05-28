@@ -2,7 +2,7 @@
 
 use alloy_primitives::Address;
 use alloy_primitives::hex::{self, ToHexExt};
-use coins_bip32::path::DerivationPath;
+use bip32::DerivationPath;
 use nexum_apdu_transport_pcsc::PcscTransport;
 use nexum_keycard::ExportOption;
 use std::error::Error;
@@ -58,13 +58,7 @@ pub fn export_key_command(
 
     println!(
         "{}",
-        display::success(
-            format!(
-                "Key at path {} exported successfully",
-                path.derivation_string()
-            )
-            .as_str()
-        )
+        display::success(format!("Key at path {path} exported successfully").as_str())
     );
 
     // Build our key value items
@@ -168,20 +162,24 @@ pub fn load_seed_command(
     // Initialize keycard with pairing info
     let mut keycard = utils::session::initialize_keycard(transport, Some(pairing_args))?;
 
-    // Handle seed phrase input
-    // Import necessary components for BIP39
-    use coins_bip39::Mnemonic;
-    use coins_bip39::{
-        ChineseSimplified, ChineseTraditional, Czech, English, French, Italian, Japanese, Korean,
-        Portuguese, Spanish,
+    use bip39::{Language, Mnemonic};
+
+    let lang = match language {
+        "english" => Language::English,
+        "chinese_simplified" => Language::SimplifiedChinese,
+        "chinese_traditional" => Language::TraditionalChinese,
+        "czech" => Language::Czech,
+        "french" => Language::French,
+        "italian" => Language::Italian,
+        "japanese" => Language::Japanese,
+        "korean" => Language::Korean,
+        "portuguese" => Language::Portuguese,
+        "spanish" => Language::Spanish,
+        _ => return Err(format!("Unsupported language: {language}").into()),
     };
 
-    // Get mnemonic phrase from user using the utility function
     let mnemonic_phrase = utils::session::default_input_request("Enter your seed phrase")?;
-
-    // Get password if requested
     let password = if password {
-        // User specified the --password flag, so prompt for it
         Some(utils::session::default_input_request(
             "Enter password for seed phrase",
         )?)
@@ -189,48 +187,10 @@ pub fn load_seed_command(
         None
     };
 
-    // Use a generic function to handle different language wordlists
-    fn parse_and_load_seed<L>(
-        phrase: &str,
-        password: Option<String>,
-        keycard: &mut nexum_keycard::Keycard<
-            nexum_apdu_core::prelude::CardExecutor<
-                nexum_keycard::KeycardSecureChannel<nexum_apdu_transport_pcsc::PcscTransport>,
-            >,
-        >,
-    ) -> Result<[u8; 32], Box<dyn Error>>
-    where
-        L: coins_bip39::Wordlist,
-    {
-        // Parse the mnemonic phrase
-        let mnemonic = Mnemonic::<L>::new_from_phrase(phrase)
-            .map_err(|e| format!("Failed to parse mnemonic: {e}"))?;
-
-        // Load the key from seed
-        Ok(match password {
-            Some(p) => keycard.load_seed(&mnemonic.to_seed(Some(&p))?, true)?,
-            None => keycard.load_seed(&mnemonic.to_seed(None)?, true)?,
-        })
-    }
-
-    // Call the appropriate function based on the selected language
-    let result = match language {
-        "english" => parse_and_load_seed::<English>(&mnemonic_phrase, password, &mut keycard),
-        "chinese_simplified" => {
-            parse_and_load_seed::<ChineseSimplified>(&mnemonic_phrase, password, &mut keycard)
-        }
-        "chinese_traditional" => {
-            parse_and_load_seed::<ChineseTraditional>(&mnemonic_phrase, password, &mut keycard)
-        }
-        "czech" => parse_and_load_seed::<Czech>(&mnemonic_phrase, password, &mut keycard),
-        "french" => parse_and_load_seed::<French>(&mnemonic_phrase, password, &mut keycard),
-        "italian" => parse_and_load_seed::<Italian>(&mnemonic_phrase, password, &mut keycard),
-        "japanese" => parse_and_load_seed::<Japanese>(&mnemonic_phrase, password, &mut keycard),
-        "korean" => parse_and_load_seed::<Korean>(&mnemonic_phrase, password, &mut keycard),
-        "portuguese" => parse_and_load_seed::<Portuguese>(&mnemonic_phrase, password, &mut keycard),
-        "spanish" => parse_and_load_seed::<Spanish>(&mnemonic_phrase, password, &mut keycard),
-        _ => return Err(format!("Unsupported language: {language}").into()),
-    }?;
+    let mnemonic = Mnemonic::parse_in_normalized(lang, &mnemonic_phrase)
+        .map_err(|e| format!("Failed to parse mnemonic: {e}"))?;
+    let seed = mnemonic.to_seed_normalized(password.as_deref().unwrap_or(""));
+    let result = keycard.load_seed(&seed, true)?;
 
     // Handle the result
     use crate::utils::display;
@@ -310,8 +270,8 @@ pub fn generate_mnemonic_command(
     // Initialize keycard with pairing info
     let mut keycard = utils::session::initialize_keycard(transport, Some(pairing_args))?;
 
-    // Generate mnemonic
-    let mnemonic = keycard.generate_mnemonic(words_count)?;
+    // Generate mnemonic (English wordlist by default).
+    let mnemonic = keycard.generate_mnemonic(words_count, bip39::Language::English)?;
 
     println!(
         "{}",
@@ -322,7 +282,7 @@ pub fn generate_mnemonic_command(
     // Display the mnemonic in a key value box
     println!(
         "{}",
-        display::key_value_box("MNEMONIC PHRASE", vec![("Phrase", mnemonic.to_phrase())])
+        display::key_value_box("MNEMONIC PHRASE", vec![("Phrase", mnemonic.to_string())])
     );
 
     Ok(())
