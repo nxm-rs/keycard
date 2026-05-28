@@ -513,9 +513,7 @@ where
         confirm: bool,
     ) -> Result<alloy_primitives::Signature> {
         // Confirm the operation if a confirmation function is provided
-        if confirm
-            && !self.confirm_operation(&format!("Sign data with key from path {path}?"))?
-        {
+        if confirm && !self.confirm_operation(&format!("Sign data with key from path {path}?"))? {
             return Err(Error::UserCancelled);
         }
 
