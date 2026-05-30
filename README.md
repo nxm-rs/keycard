@@ -4,7 +4,7 @@
 
 A Rust toolkit for **Status Keycards** — smart cards that hold keys in a secure element and sign over an APDU channel. Ships the core SDK, an Ethereum signer that plugs into [alloy](https://github.com/alloy-rs/alloy), and a CLI for hands-on card administration.
 
-Nexum uses Keycards as a hardware-bound signing path for the [wallet](https://github.com/nxm-rs/wallet): the seed never leaves the card, the wallet talks to it over NFC on the phone or PC/SC on a desktop reader.
+Nexum uses Keycards as a hardware-bound signing path for the [wallet](https://github.com/nxm-rs/wallet): keys never leave the card's secure element; the wallet talks to it over NFC on the phone or PC/SC on a desktop reader.
 
 > **Pre-release.** APIs may change. Not yet on crates.io.
 
